@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,14 +7,22 @@
 <title>Bestie Story 💞</title>
 
 <style>
-body{
+html, body {
   margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
   font-family:Arial;
   overflow:hidden;
+}
+
+/* Animated Background */
+body{
   color:white;
   background: linear-gradient(-45deg, #ff4d6d, #6a5cff, #00c2ff, #00ff9d, #ffcc00);
   background-size: 400% 400%;
   animation: gradientBG 12s ease infinite;
+  background-attachment: fixed;
 }
 
 @keyframes gradientBG{
@@ -22,12 +31,17 @@ body{
   100%{background-position:0% 50%;}
 }
 
+/* Story container */
 #story{
   position:fixed;
+  top:0;
+  left:0;
   width:100%;
   height:100%;
+  z-index:2;
 }
 
+/* Progress bars */
 #bars{
   position:absolute;
   top:10px;
@@ -35,22 +49,24 @@ body{
   right:10px;
   display:flex;
   gap:5px;
-  z-index:10;
 }
 
 .bar{
   flex:1;
-  height:3px;
-  background:rgba(255,255,255,0.3);
+  height:4px;
+  background:rgba(255,255,255,0.25);
+  border-radius:10px;
+  overflow:hidden;
 }
 
 .fill{
   height:100%;
   width:0%;
   background:white;
-  transition:3s linear;
+  transition:0.3s;
 }
 
+/* Text */
 #text{
   position:absolute;
   bottom:20%;
@@ -58,10 +74,12 @@ body{
   text-align:center;
   font-size:22px;
   padding:20px;
-  text-shadow:0 0 10px rgba(0,0,0,0.5);
+  opacity:1;
+  transition:0.4s;
+  text-shadow:0 0 10px rgba(0,0,0,0.6);
 }
 
-/* Hearts */
+/* Hearts animation */
 .heart{
   position:fixed;
   font-size:22px;
@@ -74,13 +92,26 @@ body{
     opacity:0;
   }
 }
+
+/* Hidden YouTube player */
+#ytplayer{
+  position:fixed;
+  width:0;
+  height:0;
+  opacity:0;
+  pointer-events:none;
+}
 </style>
 </head>
 
 <body>
 
-<!-- Hidden YouTube Player -->
-<div id="ytplayer" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none;"></div>
+<div id="ytplayer"></div>
+
+<div id="story">
+  <div id="bars"></div>
+  <div id="text"></div>
+</div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
 
@@ -90,8 +121,6 @@ const VIDEO_ID = "oafxkMv4xnc";
 
 function onYouTubeIframeAPIReady(){
   player = new YT.Player('ytplayer',{
-    height:'0',
-    width:'0',
     videoId: VIDEO_ID,
     playerVars:{
       autoplay:0,
@@ -99,31 +128,20 @@ function onYouTubeIframeAPIReady(){
       playlist: VIDEO_ID
     },
     events:{
-      onReady:(e)=>{
-        e.target.setVolume(50);
-      }
+      onReady:(e)=> e.target.setVolume(50)
     }
   });
 }
 
-// Start music on first tap
 let musicStarted = false;
 document.body.addEventListener("click", ()=>{
-  if(!musicStarted){
-    if(player){
-      player.playVideo();
-      musicStarted = true;
-    }
+  if(!musicStarted && player){
+    player.playVideo();
+    musicStarted = true;
   }
 });
-</script>
 
-<div id="story">
-  <div id="bars"></div>
-  <div id="text"></div>
-</div>
-
-<script>
+/* Slides */
 const slides = [
 "Hey Purvi 🫶",
 "Mujhse thodi si gadbad ho gayi 😅",
@@ -141,7 +159,8 @@ const slides = [
 
 let current = 0;
 
-// Progress bars
+/* Create bars */
+const bars = document.getElementById("bars");
 slides.forEach(()=>{
   let b=document.createElement('div');
   b.className='bar';
@@ -151,17 +170,31 @@ slides.forEach(()=>{
   bars.appendChild(b);
 });
 
+/* Show slide */
 function showSlide(i){
-  current = i;
-  text.innerText = slides[i];
+  const text = document.getElementById("text");
 
-  let fills=document.querySelectorAll('.fill');
-  fills.forEach(f=>f.style.width="0%");
-  setTimeout(()=>fills[i].style.width="100%",50);
+  text.style.opacity = 0;
 
-  if(navigator.vibrate) navigator.vibrate(80);
+  setTimeout(()=>{
+    current = i;
+    text.innerText = slides[i];
+    text.style.opacity = 1;
+
+    let fills=document.querySelectorAll('.fill');
+    fills.forEach((f, idx)=>{
+      f.style.width = (idx < i) ? "100%" : "0%";
+    });
+
+    setTimeout(()=>{
+      if(fills[i]) fills[i].style.width = "100%";
+    },50);
+
+    if(navigator.vibrate) navigator.vibrate(80);
+  },200);
 }
 
+/* Navigation */
 function next(){
   if(current < slides.length-1){
     showSlide(current+1);
@@ -171,12 +204,12 @@ function next(){
 }
 
 function prev(){
-  if(current>0){
+  if(current > 0){
     showSlide(current-1);
   }
 }
 
-// Tap navigation
+/* Tap controls */
 document.body.addEventListener("click",(e)=>{
   if(e.clientX < window.innerWidth/2){
     prev();
@@ -185,7 +218,7 @@ document.body.addEventListener("click",(e)=>{
   }
 });
 
-// Hearts explosion
+/* Hearts effect */
 function explodeHearts(){
   for(let i=0;i<80;i++){
     let h=document.createElement('div');
@@ -198,6 +231,7 @@ function explodeHearts(){
   }
 }
 
+/* Final screen */
 function finalScreen(){
   document.body.innerHTML="";
 
@@ -208,6 +242,7 @@ function finalScreen(){
   msg.style.left="50%";
   msg.style.transform="translate(-50%,-50%)";
   msg.style.textAlign="center";
+
   document.body.appendChild(msg);
 
   explodeHearts();
@@ -217,10 +252,9 @@ function finalScreen(){
   },2000);
 }
 
-// Start
+/* Init */
 showSlide(0);
 </script>
 
 </body>
 </html>
-
