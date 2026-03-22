@@ -9,9 +9,17 @@
 body{
   margin:0;
   font-family:Arial;
-  background:black;
   overflow:hidden;
   color:white;
+  background: linear-gradient(-45deg, #ff4d6d, #6a5cff, #00c2ff, #00ff9d, #ffcc00);
+  background-size: 400% 400%;
+  animation: gradientBG 12s ease infinite;
+}
+
+@keyframes gradientBG{
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
 }
 
 #story{
@@ -50,8 +58,10 @@ body{
   text-align:center;
   font-size:22px;
   padding:20px;
+  text-shadow:0 0 10px rgba(0,0,0,0.5);
 }
 
+/* Hearts */
 .heart{
   position:fixed;
   font-size:22px;
@@ -71,12 +81,12 @@ body{
 
 <!-- Hidden YouTube Player -->
 <div id="ytplayer" style="position:fixed;width:0;height:0;opacity:0;pointer-events:none;"></div>
+
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
 let player;
-
-const VIDEO_ID = "oafxkMv4xnc"; // ✅ Your song
+const VIDEO_ID = "oafxkMv4xnc";
 
 function onYouTubeIframeAPIReady(){
   player = new YT.Player('ytplayer',{
@@ -84,15 +94,28 @@ function onYouTubeIframeAPIReady(){
     width:'0',
     videoId: VIDEO_ID,
     playerVars:{
-      autoplay:1,
+      autoplay:0,
       loop:1,
       playlist: VIDEO_ID
     },
     events:{
-      onReady:(e)=> e.target.setVolume(50)
+      onReady:(e)=>{
+        e.target.setVolume(50);
+      }
     }
   });
 }
+
+// Start music on first tap
+let musicStarted = false;
+document.body.addEventListener("click", ()=>{
+  if(!musicStarted){
+    if(player){
+      player.playVideo();
+      musicStarted = true;
+    }
+  }
+});
 </script>
 
 <div id="story">
@@ -117,7 +140,6 @@ const slides = [
 ];
 
 let current = 0;
-let started = false;
 
 // Progress bars
 slides.forEach(()=>{
@@ -154,13 +176,8 @@ function prev(){
   }
 }
 
-// Tap + music start
+// Tap navigation
 document.body.addEventListener("click",(e)=>{
-  if(!started){
-    if(player){ player.playVideo(); }
-    started = true;
-  }
-
   if(e.clientX < window.innerWidth/2){
     prev();
   } else {
@@ -168,8 +185,9 @@ document.body.addEventListener("click",(e)=>{
   }
 });
 
+// Hearts explosion
 function explodeHearts(){
-  for(let i=0;i<70;i++){
+  for(let i=0;i<80;i++){
     let h=document.createElement('div');
     h.className='heart';
     h.innerText="💞";
@@ -189,6 +207,7 @@ function finalScreen(){
   msg.style.top="40%";
   msg.style.left="50%";
   msg.style.transform="translate(-50%,-50%)";
+  msg.style.textAlign="center";
   document.body.appendChild(msg);
 
   explodeHearts();
@@ -198,8 +217,10 @@ function finalScreen(){
   },2000);
 }
 
+// Start
 showSlide(0);
 </script>
 
 </body>
 </html>
+
